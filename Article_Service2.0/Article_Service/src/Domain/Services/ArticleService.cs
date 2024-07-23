@@ -21,7 +21,7 @@ namespace Domain.Services
 
         public async Task<Article> Create(CreateDto createDto)
         {
-            if (string.IsNullOrEmpty(createDto.Title) || string.IsNullOrEmpty(createDto.Html))
+            if (string.IsNullOrEmpty(createDto.Title) || string.IsNullOrEmpty(createDto.Description))
             {
                 throw new ArgumentException("Title and Html are required.", nameof(createDto));
             }

@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using System.ComponentModel.Design;
 using Domain.Data;
 using Domain.Dto;
@@ -22,7 +26,7 @@ namespace Domain.Repositories
             var article = new Article
             {
                 Title = createDto.Title,
-                Html = createDto.Html,
+                Description = createDto.Description,
                 // CreatedAt = DateTime.Now,
                 // UpdatedAt = DateTime.Now,
             };
