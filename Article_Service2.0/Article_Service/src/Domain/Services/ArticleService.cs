@@ -56,20 +56,5 @@ namespace Domain.Services
                 throw new NotFoundException("Article not found");
             }
         }
-
-        // public async Task<Article> UpdateAsync(UpdateDTO article)
-        // {
-        //     return await _articleRepository.UpdateAsync(article);
-        // }
-
-        // public async Task<Article> DeleteAsync(int id)
-        // {
-        //     return await _articleRepository.DeleteAsync(id);
-        // }
-
-        // public async Task<IEnumerable<Article>> GetAllAsync()
-        // {
-        //     return await _articleRepository.GetAllAsync();
-        // }
     }
 }

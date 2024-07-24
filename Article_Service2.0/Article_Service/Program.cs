@@ -52,9 +52,10 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 
 builder.Services.AddTransient<IArticleRepository, ArticleRepository>();
 builder.Services.AddTransient<IArticleService, Domain.Services.ArticleService>();
+builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
+builder.Services.AddTransient<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-// Add CORS if needed
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("LocalDevelopment",
@@ -69,7 +70,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

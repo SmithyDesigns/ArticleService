@@ -7,6 +7,8 @@ using Domain.Dto;
 using Domain.Services;
 using Domain.Interfaces;
 using Article_Service.src.Domain.Interfaces;
+using Domain.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Article_Service.src.Aplication.Controllers
 {
@@ -22,11 +24,11 @@ namespace Article_Service.src.Aplication.Controllers
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginDto login)
+        public IActionResult Login([FromBody] LoginDto loginDto)
         {
-            if (IsValidUser(login.Username, login.Password))
+            if (IsValidUser(loginDto.Username, loginDto.Password))
             {
-                var token = _jwtService.GenerateToken(login.Username);
+                var token = _jwtService.GenerateToken(loginDto.Username);
                 return Ok(new { token });
             }
 
@@ -35,8 +37,15 @@ namespace Article_Service.src.Aplication.Controllers
 
         private bool IsValidUser(string username, string password)
         {
-            // Implement your user validation logic here
-            return username == "testuser" && password == "testpassword";
+            //@todo fix this part
+            var connectionString = builder.Configuration.GetConnectionString("DbConnection");
+            var options = new DbContextOptionsBuilder<MyDbContext>()
+            .UseSqlServer(connectionString)
+            .Options;
+
+
+            using var dbContext = new MyDbContext(options);
+            return dbContext.Customers.Any(u => u.Username == username && u.Password == password);
         }
     }
 }
