@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Domain.Dto;
 using Domain.Services;
@@ -17,35 +17,81 @@ namespace Article_Service.src.Aplication.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IJwtService _jwtService;
+        private readonly MyDbContext _dbContext;
 
-        public AuthController(IJwtService jwtService)
+        public AuthController(IJwtService jwtService, MyDbContext dbContext)
         {
-            _jwtService = jwtService;
+            _jwtService = jwtService ?? throw new ArgumentNullException(nameof(jwtService));
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginDto loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginDto loginDto)
         {
-            if (IsValidUser(loginDto.Username, loginDto.Password))
+            if (loginDto == null || string.IsNullOrWhiteSpace(loginDto.Username) || string.IsNullOrWhiteSpace(loginDto.Password))
             {
-                var token = _jwtService.GenerateToken(loginDto.Username);
-                return Ok(new { token });
+                return BadRequest("Invalid username or password");
             }
 
-            return Unauthorized();
+            var user = await _dbContext.Customers.FirstOrDefaultAsync(u => u.Username == loginDto.Username);
+            
+            if (user == null)
+            {
+                return Unauthorized($"User not found: {loginDto.Username}");
+            }
+
+            var isValidPassword = VerifyPassword(loginDto.Password, user.Password);
+
+            if (!isValidPassword)
+            {
+                return Unauthorized($"Invalid password for user: {loginDto.Username}");
+            }
+
+            var token = _jwtService.GenerateToken(loginDto.Username);
+            return Ok(new { token, message = "Login successful" });
         }
 
-        private bool IsValidUser(string username, string password)
+        private async Task<(bool isValid, string errorMessage)> IsValidUserAsync(string username, string password)
         {
-            //@todo fix this part
-            var connectionString = builder.Configuration.GetConnectionString("DbConnection");
-            var options = new DbContextOptionsBuilder<MyDbContext>()
-            .UseSqlServer(connectionString)
-            .Options;
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            {
+                return (false, "Username and password are required");
+            }
+
+            var user = await _dbContext.Customers.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (user == null)
+            {
+                return (false, $"User not found: {username}");
+            }
+
+            if (string.IsNullOrWhiteSpace(user.Password))
+            {
+                return (false, $"User found but password is empty: {username}");
+            }
+
+            var isValidPassword = VerifyPassword(password, user.Password);
+
+            return (isValidPassword, isValidPassword ? string.Empty : $"Invalid password for user: {username}");
+        }
 
 
-            using var dbContext = new MyDbContext(options);
-            return dbContext.Customers.Any(u => u.Username == username && u.Password == password);
+
+        private string HashPassword(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("Password cannot be empty or null", nameof(password));
+
+            var salt = BCrypt.Net.BCrypt.GenerateSalt();
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
+
+            return hashedPassword;
+        }
+
+        private bool VerifyPassword(string inputPassword, string storedHashedPassword)
+        {
+            var hashedInputPassword = HashPassword(inputPassword);
+            return hashedInputPassword == storedHashedPassword;
         }
     }
 }

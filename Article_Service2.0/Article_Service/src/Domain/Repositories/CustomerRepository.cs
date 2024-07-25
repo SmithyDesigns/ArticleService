@@ -10,6 +10,9 @@ using Domain.Exceptions;
 using Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Article_Service.src.Domain.Entities;
+using System.Text;
+using System.Security.Cryptography;
+using BCrypt.Net;
 
 namespace Domain.Repositories
 {
@@ -27,10 +30,10 @@ namespace Domain.Repositories
             var customer = new Customer
             {
                 Username = customerDto.Username,
-                Password = customerDto.Password,
+                Password = HashPassword(customerDto.Password)
             };
 
-            await _context.Customers.AddAsync(customer);
+            _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
             return customer;
@@ -44,6 +47,11 @@ namespace Domain.Repositories
                 throw new NotFoundException("Customer not found");
             }
             return customer;
+        }
+
+        private string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
     }
 }

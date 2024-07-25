@@ -17,26 +17,31 @@ namespace Controllers
 
         public CustomerController(ICustomerService customerService)
         {
-            _customerService = customerService;
+            _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
         }
 
         [HttpPost("create-customer")]
-        public async Task<IActionResult> Create([FromBody] CustomerDto customerDto )
+        public async Task<IActionResult> Create([FromBody] CustomerDto customerDto)
         {
-            if (customerDto.Password == null || customerDto.Username == null)
+            if (customerDto == null || string.IsNullOrWhiteSpace(customerDto.Username) || string.IsNullOrWhiteSpace(customerDto.Password))
             {
-                return BadRequest("CustomerDto is required");
+                return BadRequest("Valid username and password are required");
             }
 
-            var customer = await _customerService.Create(customerDto);
-
-            var createdcustomerDto = new CustomerDto
+            try
             {
-                Username = customer.Username,
-                Password = customer.Password
-            };
+                var customer = await _customerService.Create(customerDto);
+                if (customer == null)
+                {
+                    return StatusCode(500, "Failed to create customer");
+                }
 
-            return Ok(createdcustomerDto);
+                return CreatedAtAction(nameof(Find), new { username = customer.Username }, new { customer.Username, Message = "Customer created successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while creating the customer: {ex.Message}");
+            }
         }
 
         [HttpGet("find-customer")]
