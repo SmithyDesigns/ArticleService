@@ -24,6 +24,7 @@ builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
@@ -35,10 +36,12 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
         ClockSkew = TimeSpan.Zero
     };
 });
+
+builder.Services.AddAuthorization();
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -56,17 +59,17 @@ builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
 builder.Services.AddTransient<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("LocalDevelopment",
-        builder => 
-        {
-            builder.WithOrigins("http://localhost:5211")
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-        });
-});
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy("LocalDevelopment",
+//         builder => 
+//         {
+//             builder.WithOrigins("http://localhost:5211")
+//             .AllowAnyHeader()
+//             .AllowAnyMethod()
+//             .AllowCredentials();
+//         });
+// });
 
 var app = builder.Build();
 

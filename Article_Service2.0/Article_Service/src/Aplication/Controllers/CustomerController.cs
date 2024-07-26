@@ -36,7 +36,12 @@ namespace Controllers
                     return StatusCode(500, "Failed to create customer");
                 }
 
-                return CreatedAtAction(nameof(Find), new { username = customer.Username }, new { customer.Username, Message = "Customer created successfully" });
+                var customerU = new SearchDto
+                {
+                    Username = customer.Username,
+                };
+
+                return new JsonResult(customerU);
             }
             catch (Exception ex)
             {
@@ -44,8 +49,8 @@ namespace Controllers
             }
         }
 
-        [HttpGet("find-customer")]
-        public async Task<IActionResult> Find([FromQuery] SearchDto searchDto)
+        [HttpPost("find-customer")]
+        public async Task<IActionResult> Find([FromBody] SearchDto searchDto)
         {
             if (searchDto.Username == null)
             {
@@ -53,7 +58,12 @@ namespace Controllers
             }
 
             var customer = await _customerService.Find(searchDto);
-            return Ok(customer);
+
+            var foundCustomer = new SearchDto
+                {
+                    Username = customer.Username,
+                };
+            return new JsonResult(foundCustomer);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Domain.Repositories
             var customer = new Customer
             {
                 Username = customerDto.Username,
-                Password = HashPassword(customerDto.Password)
+                Password = Hash(customerDto.Password)
             };
 
             _context.Customers.Add(customer);
@@ -41,7 +41,9 @@ namespace Domain.Repositories
 
         public async Task<Customer> Find(SearchDto searchDto)
         {
-            var customer = await _context.Customers.FirstOrDefaultAsync(a => a.Username == searchDto.Username);
+            var customer = await _context.Customers
+                .SingleOrDefaultAsync(a => a.Username == searchDto.Username);
+                
             if (customer == null)
             {
                 throw new NotFoundException("Customer not found");
@@ -49,9 +51,9 @@ namespace Domain.Repositories
             return customer;
         }
 
-        private string HashPassword(string password)
+        private string Hash(string password)
         {
-            return BCrypt.Net.BCrypt.HashPassword(password);
+            return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
         }
     }
 }

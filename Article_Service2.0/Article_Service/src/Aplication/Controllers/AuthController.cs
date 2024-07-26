@@ -33,7 +33,7 @@ namespace Article_Service.src.Aplication.Controllers
                 return BadRequest("Invalid username or password");
             }
 
-            var user = await _dbContext.Customers.FirstOrDefaultAsync(u => u.Username == loginDto.Username);
+            var user = await _dbContext.Customers.SingleOrDefaultAsync(u => u.Username == loginDto.Username);
             
             if (user == null)
             {
@@ -48,50 +48,22 @@ namespace Article_Service.src.Aplication.Controllers
             }
 
             var token = _jwtService.GenerateToken(loginDto.Username);
-            return Ok(new { token, message = "Login successful" });
+            return new JsonResult(new { token, message = "Login successful" });
         }
 
-        private async Task<(bool isValid, string errorMessage)> IsValidUserAsync(string username, string password)
+        private string Hash(string password)
         {
-            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
-            {
-                return (false, "Username and password are required");
-            }
-
-            var user = await _dbContext.Customers.FirstOrDefaultAsync(u => u.Username == username);
-
-            if (user == null)
-            {
-                return (false, $"User not found: {username}");
-            }
-
-            if (string.IsNullOrWhiteSpace(user.Password))
-            {
-                return (false, $"User found but password is empty: {username}");
-            }
-
-            var isValidPassword = VerifyPassword(password, user.Password);
-
-            return (isValidPassword, isValidPassword ? string.Empty : $"Invalid password for user: {username}");
-        }
-
-
-
-        private string HashPassword(string password)
-        {
-            if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentException("Password cannot be empty or null", nameof(password));
-
-            var salt = BCrypt.Net.BCrypt.GenerateSalt();
-            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, salt);
-
-            return hashedPassword;
+            return BCrypt.Net.BCrypt.HashPassword(password, workFactor: 12);
         }
 
         private bool VerifyPassword(string inputPassword, string storedHashedPassword)
         {
-            var hashedInputPassword = HashPassword(inputPassword);
-            return hashedInputPassword == storedHashedPassword;
+            if (string.IsNullOrEmpty(storedHashedPassword))
+            {
+                return false;
+            }
+
+            return BCrypt.Net.BCrypt.Verify(inputPassword, storedHashedPassword);
         }
     }
 }

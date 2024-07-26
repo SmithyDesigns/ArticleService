@@ -52,7 +52,7 @@ namespace Domain.Data
 
             modelBuilder.Entity<Customer>()
                 .Property(c => c.Password)
-                .HasMaxLength(100)
+                .HasColumnType("char(60)")
                 .IsRequired();
         }
     }
