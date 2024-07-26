@@ -21,7 +21,7 @@ namespace Domain.Services
 
         public async Task<Article> Create(CreateDto createDto)
         {
-            if (string.IsNullOrEmpty(createDto.Title) || string.IsNullOrEmpty(createDto.Html))
+            if (string.IsNullOrEmpty(createDto.Title) || string.IsNullOrEmpty(createDto.Description))
             {
                 throw new ArgumentException("Title and Html are required.", nameof(createDto));
             }
@@ -56,20 +56,5 @@ namespace Domain.Services
                 throw new NotFoundException("Article not found");
             }
         }
-
-        // public async Task<Article> UpdateAsync(UpdateDTO article)
-        // {
-        //     return await _articleRepository.UpdateAsync(article);
-        // }
-
-        // public async Task<Article> DeleteAsync(int id)
-        // {
-        //     return await _articleRepository.DeleteAsync(id);
-        // }
-
-        // public async Task<IEnumerable<Article>> GetAllAsync()
-        // {
-        //     return await _articleRepository.GetAllAsync();
-        // }
     }
 }

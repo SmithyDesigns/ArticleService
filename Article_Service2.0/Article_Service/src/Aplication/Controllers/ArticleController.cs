@@ -1,4 +1,8 @@
-﻿using Domain.Dto;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Domain.Dto;
 using Domain.Entities;
 using Domain.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +33,7 @@ namespace Controllers
             var articleDto = new ArticleDto
             {
                 Title = article.Title,
-                Html = article.Html
+                Description = article.Description
             };
 
             return Ok(articleDto);
