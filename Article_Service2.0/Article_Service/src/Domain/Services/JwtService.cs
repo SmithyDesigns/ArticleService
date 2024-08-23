@@ -20,8 +20,7 @@ namespace Article_Service.src.Domain.Services
 
         public JwtService(IConfiguration configuration)
         {
-            _jwtKey = Guid.NewGuid().ToString();
-            configuration["Jwt:Key"] = _jwtKey;
+            _jwtKey = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key is not configured");
             _configuration = configuration;
         }
 

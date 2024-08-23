@@ -23,23 +23,37 @@ namespace Controllers
             _articleService = articleService;
         }
 
+        [Authorize]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateDto createDto)
         {
-            if (createDto == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("CreateDto is required");
+                return BadRequest(ModelState);
             }
 
-            var article = await _articleService.Create(createDto);
-
-            var articleDto = new ArticleDto
+            try
             {
-                Title = article.Title,
-                Description = article.Description
-            };
+                if (createDto == null)
+                {
+                    return BadRequest("CreateDto is required");
+                }
 
-            return new JsonResult(articleDto);
+                var article = await _articleService.Create(createDto);
+
+                var articleDto = new ArticleDto
+                {
+                    Title = article.Title,
+                    Description = article.Description
+                };
+
+                return new JsonResult(articleDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
+
         }
 
         [HttpGet("find")]
