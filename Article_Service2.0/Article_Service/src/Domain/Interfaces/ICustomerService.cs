@@ -2,15 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Article_Service.src.Domain.Entities;
 using Domain.Dto;
 using Domain.Entities;
 
 namespace Domain.Interfaces
 {
-    public interface IArticleService
+    public interface ICustomerService
     {
-        Task<Article> Create(CreateDto createDto);
+        Task<Customer> Create(CustomerDto customerDto);
 
-        Task<Article> Find(FindDto findDto);
+        Task<Customer> Find(SearchDto searchDto);
     }
 }

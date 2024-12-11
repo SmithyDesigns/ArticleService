@@ -1,10 +1,17 @@
-﻿using Domain.Dto;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
+using Domain.Dto;
 using Domain.Entities;
 using Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Controllers
 {
+    // [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ArticleController : ControllerBase
@@ -16,27 +23,41 @@ namespace Controllers
             _articleService = articleService;
         }
 
+        [Authorize]
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] CreateDto createDto)
         {
-            if (createDto == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("CreateDto is required");
+                return BadRequest(ModelState);
             }
 
-            var article = await _articleService.Create(createDto);
-
-            var articleDto = new ArticleDto
+            try
             {
-                Title = article.Title,
-                Html = article.Html
-            };
+                if (createDto == null)
+                {
+                    return BadRequest("CreateDto is required");
+                }
 
-            return Ok(articleDto);
+                var article = await _articleService.Create(createDto);
+
+                var articleDto = new ArticleDto
+                {
+                    Title = article.Title,
+                    Description = article.Description
+                };
+
+                return new JsonResult(articleDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex);
+            }
+
         }
 
         [HttpGet("find")]
-        public async Task<IActionResult> Find([FromQuery] FindDto findDto)
+        public async Task<IActionResult> Find([FromBody] FindDto findDto)
         {
             if (findDto == null)
             {
@@ -44,7 +65,7 @@ namespace Controllers
             }
 
             var article = await _articleService.Find(findDto);
-            return Ok(article);
+            return new JsonResult(article);
         }
     }
 }
